@@ -23,6 +23,7 @@ def main(filename, start, count, output):
 
     # Plot settings
     tasks = ['b', 'p', 'u', 'w']
+    # tasks = ['b', 'p', 'u']
     clims = [(-.5, .5), (-.15, .15), (-.5, .5), (-.5, .5)]
     scale = 2.5
     dpi = 100
@@ -38,6 +39,7 @@ def main(filename, start, count, output):
     mfig = plot_tools.MultiFigure(nrows, ncols, image, pad, margin, scale)
     fig = mfig.figure
     # Plot writes
+    
     with h5py.File(filename, mode='r') as file:
         for index in range(start, start+count):
             for n, (clim, task) in enumerate(zip(clims, tasks)):
@@ -48,6 +50,21 @@ def main(filename, start, count, output):
                 dset = file['tasks'][task]
                 # plot_tools.plot_bot_3d(dset, 0, index, axes=axes, title=task, clim=clim, even_scale=True)
                 plot_tools.plot_bot_3d(dset, 0, index, axes=axes, title=task, even_scale=True)
+                
+                # ## because of different form of dedalus having vector fields used?
+                # if task == "u":
+                    # coordkey = {0 : "x", 1 : "z"}
+                    # for coordi in [0,1]:
+                        # # Build subfigure axes
+                        # i, j = divmod(n, ncols)
+                        # axes = mfig.add_axes(i, j, [0, 0, 1, 1])
+                        # # Call 3D plotting helper, slicing in time
+                        # dset = file['tasks'][task]
+                        # print(dset)
+                        # raise
+                        # # plot_tools.plot_bot_3d(dset, 0, index, axes=axes, title=task, clim=clim, even_scale=True)
+                        # plot_tools.plot_bot_3d(dset, 0, index, axes=axes, title=f"{task}_{coordkey[coordi]}", even_scale=True)
+                        
             # Add time title
             title = title_func(file['scales/sim_time'][index])
             title_height = 1 - 0.5 * mfig.margin.top / mfig.fig.y
@@ -67,7 +84,8 @@ if __name__ == "__main__":
     from dedalus.tools import logging
     from dedalus.tools import post
     from dedalus.tools.parallel import Sync
-
+    from glob import glob
+    
     args = docopt(__doc__)
 
     output_path = pathlib.Path(args['--output']).absolute()
@@ -76,5 +94,8 @@ if __name__ == "__main__":
         if sync.comm.rank == 0:
             if not output_path.exists():
                 output_path.mkdir()
-    post.visit_writes(args['<files>'], main, output=output_path)
+    
+    globfiles = glob(args['<files>'][0])
+    print(globfiles)
+    post.visit_writes(globfiles, main, output=output_path)
 
