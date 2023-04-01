@@ -280,6 +280,7 @@ def main():
     # adjust batch size based on the number of gpus available
     args.batch_size = int(torch.cuda.device_count()) * args.batch_size_per_gpu
 
+
     # log and create snapshots
     os.makedirs(args.log_dir, exist_ok=True)
     filenames_to_snapshot = glob("*.py") + glob("*.sh")
